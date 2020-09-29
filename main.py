@@ -29,7 +29,7 @@ def main():
                            snapshot_num_layers=TextEncoderConfig.snapshot_num_layers,
                            choice_num_heads=TextEncoderConfig.choice_num_heads,
                            choice_num_layers=TextEncoderConfig.choice_num_layers,
-                           dropout=TextEncoderConfig.choice_num_layers,
+                           dropout=TextEncoderConfig.dropout,
                            pad_token_id=dataset.pad_token_id
                            ).to(device)
 
