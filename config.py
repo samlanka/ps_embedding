@@ -10,6 +10,7 @@ class TextEncoderConfig:
     choice_num_heads: int = 4
     choice_num_layers: int = 1
     feedforward_dim: int = 512
+    dropout: float = 0.1
 
 
 @dataclass
