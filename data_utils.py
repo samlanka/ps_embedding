@@ -19,6 +19,7 @@ class ChoicePoint:
 
 
 def collate_fn(batch: List[dict], pad_token_id: int):
+    num_samples = len(batch)
     batch_dict = {}
     for data_point in batch:
         for key, val in data_point.items():
@@ -27,12 +28,21 @@ def collate_fn(batch: List[dict], pad_token_id: int):
             else:
                 batch_dict[key] = [val]
     max_snapshot_len = max(batch_dict['snapshot_len'])
+    max_num_choices = max([len(choices_ids_i) for choices_ids_i in batch_dict['choices_ids']])
     max_choices_len = max(chain.from_iterable(batch_dict['choices_lens']))
-    snapshot_ids = torch.LongTensor([seq + [pad_token_id]*(max_snapshot_len - len(seq))
+    snapshot_ids = torch.LongTensor([seq + [pad_token_id] * (max_snapshot_len - len(seq))
                                      for seq in batch_dict['snapshot_ids']])
-    choices_ids = torch.LongTensor([seq + [pad_token_id]*(max_choices_len - len(seq))
-                                    for choices_i in batch_dict['choices_ids']
-                                    for seq in choices_i])
+    choices_ids = []
+    for choices_ids_i in batch_dict['choices_ids']:
+        num_choices = len(choices_ids_i)
+        choices_ids_i_padded = [seq + [pad_token_id] * (max_choices_len - len(seq))
+                                for seq in choices_ids_i]
+        choices_ids_i_padded += [[pad_token_id] * max_choices_len] * (max_num_choices - num_choices)
+        choices_ids.append(choices_ids_i_padded)
+    choices_ids = torch.LongTensor(choices_ids)
+
+    assert list(snapshot_ids.shape) == [num_samples, max_snapshot_len]
+    assert list(choices_ids.shape) == [num_samples, max_num_choices, max_choices_len]
     return {'snapshot_ids': snapshot_ids,
             'choices_ids': choices_ids
             }
